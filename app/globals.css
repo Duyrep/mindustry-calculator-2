@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* #FFD900 */
+
+:root {
+  --nav-height: 5.5rem;
+
+  /** Theme primary colors */
+  --clr-primary: #e3ae00;
+  --clr-primary-a10: #d9a925;
+  --clr-primary-a20: #cfa337;
+  --clr-primary-a30: #c49e44;
+  --clr-primary-a40: #ba9950;
+  --clr-primary-a50: #af945b;
+
+  /** Theme surface colors */
+  --clr-surface-a0: #ffffff;
+  --clr-surface-a10: #f0f0f0;
+  --clr-surface-a20: #e1e1e1;
+  --clr-surface-a30: #d3d3d3;
+  --clr-surface-a40: #c5c5c5;
+  --clr-surface-a50: #b6b6b6;
+
+  --background: #ffffff;
+  --foreground: #000000;
+
+  interpolate-size: allow-keywords;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  .dark {
+    /** Theme primary colors */
+    --clr-primary: #e3ae00;
+    --clr-primary-a10: #e8b735;
+    --clr-primary-a20: #edbf53;
+    --clr-primary-a30: #f2c86d;
+    --clr-primary-a40: #f6d185;
+    --clr-primary-a50: #f9da9e;
+
+    /** Theme surface colors */
+    --clr-surface-a0: #121212;
+    --clr-surface-a10: #282828;
+    --clr-surface-a20: #3f3f3f;
+    --clr-surface-a30: #575757;
+    --clr-surface-a40: #717171;
+    --clr-surface-a50: #8b8b8b;
+
+    --background: #121212;
+    --foreground: #ffffff;
   }
+}
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--clr-primary);
+  --color-primary-a10: var(--clr-primary-a10);
+  --color-primary-a20: var(--clr-primary-a20);
+  --color-primary-a30: var(--clr-primary-a30);
+  --color-primary-a40: var(--clr-primary-a40);
+  --color-primary-a50: var(--clr-primary-a50);
+
+  --color-surface-a0: var(--clr-surface-a0);
+  --color-surface-a10: var(--clr-surface-a10);
+  --color-surface-a20: var(--clr-surface-a20);
+  --color-surface-a30: var(--clr-surface-a30);
+  --color-surface-a40: var(--clr-surface-a40);
+  --color-surface-a50: var(--clr-surface-a50);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --animate-rippleEffect: rippleEffect 0.5s ease-out;
+  --animate-rotate90Effect: rotate90Effect .1s ease-in-out forwards;
+  --animate-rotate90ReverseEffect: rotate90ReverseEffect .1s ease-in-out forwards;
+}
+
+html {
+  @apply w-full h-full bg-background text-foreground
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Ginto, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol, "Noto Color Emoji";
+
+  @apply w-full h-full transition-colors duration-100
+}
+
+hr {
+  @apply border-surface-a40 border-2 mb-2
+}
+
+input[type="number"] {
+  @apply bg-surface-a20 rounded-md outline-none
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--clr-surface-a50);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--foreground);
+  border-radius: 3px;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+@keyframes rippleEffect {
+  to {
+    transform: scale(20);
+    opacity: 0;
+  }
+}
+
+@keyframes rotate90Effect {
+  from {
+    transform: rotate(90deg);
+  }
+
+  to {
+    transform: rotate(180deg);
+  }
+}
+
+@keyframes rotate90ReverseEffect {
+  from {
+    transform: rotate(180deg);
+  }
+
+  to {
+    transform: rotate(90deg);
+  }
 }
