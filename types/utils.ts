@@ -53,32 +53,18 @@ function getDefaultGameSettings(gameMode: GameModeEnum): GameSettingsType {
     }
   });
 
-  const beacons = {} as Partial<Record<ResourceEnum, BeaconEnum | null>>;
-  Object.values(ResourceEnum).forEach((resourceName) => {
-    const resource = getResource(resourceName);
-    if (
-      resource &&
-      resource.inGameModes.includes(gameMode) &&
-      resource.producedBy.length > 1
-    ) {
-      for (const buildingName of resource.producedBy) {
-        const building = getBuilding(buildingName);
-        if (building && building.inGameModes.includes(gameMode)) {
-          beacons[resourceName] = null;
-          break;
-        }
-      }
-    }
-  });
-
   return {
     resources: resources,
-    beacons: beacons,
+    beacons: Object.fromEntries(
+      Object.keys(ResourceEnum).map((key) => [key, undefined])
+    ),
+    boosts: {},
+    affinities: {},
   };
 }
 
 export function getBuilding(
-  name: string
+  name: string | undefined
 ): ExtractorType | FactoryType | UnitBuildingType | null {
   if (Object.values(ExtractorEnum).includes(name as ExtractorEnum)) {
     return data.extractors[name as ExtractorEnum];
@@ -92,13 +78,13 @@ export function getBuilding(
   return null;
 }
 
-export function getBeacon(name: string): BeaconType | null {
+export function getBeacon(name: string | undefined): BeaconType | null {
   if (Object.values(BeaconEnum).includes(name as BeaconEnum)) {
     return data.beacons[name as BeaconEnum];
   } else return null;
 }
 
-export function getResource(name: string): ResourceType | null {
+export function getResource(name: string | undefined): ResourceType | null {
   if (Object.values(ResourceEnum).includes(name as ResourceEnum)) {
     return data.resources[name as ResourceEnum];
   } else return null;
@@ -161,7 +147,7 @@ export function getBeaconByBuilding(
   const building = getBuilding(buildingName);
   if (!building) return undefined;
 
-  const beacons: string[] = [];
+  const beacons: [string, number][] = [];
   Object.values(BeaconEnum).forEach((beaconName) => {
     const beacon = getBeacon(beaconName);
     if (!beacon) return;
@@ -169,11 +155,45 @@ export function getBeaconByBuilding(
       building.inGameModes.includes(settings.gameMode) &&
       beacon.inGameModes.includes(settings.gameMode)
     ) {
-      beacons.push(beaconName);
+      beacons.push([ beaconName, beacon.distributionEffectivity ]);
     }
   });
 
-  return beacons;
+  return Object.fromEntries(beacons);
+}
+
+export function getBoostersByBuilding(buildingName: string) {
+  const building = getBuilding(buildingName);
+  if (
+    !building ||
+    !Object.values(ExtractorEnum).includes(buildingName as ExtractorEnum)
+  )
+    return;
+
+  const extractorBuilding = building as ExtractorType;
+  if (!extractorBuilding.booster) return;
+  if (Object.keys(extractorBuilding.booster).length == 0) return;
+
+  return Object.fromEntries(
+    Object.keys(extractorBuilding.booster!).map((key) => [
+      key,
+      extractorBuilding.booster![key as ResourceEnum],
+    ])
+  ) as Record<
+    ResourceEnum,
+    {
+      perSec: number;
+      speed: number;
+    }
+  >;
+}
+
+export function getAffinitiesByBuilding(buildingName: string) {
+  const building = getBuilding(buildingName);
+  if (building && "affinities" in building && building.affinities) {
+    return building.affinities;
+  }
+  return;
 }
 
 export function calculateProductsPerSec(

@@ -139,7 +139,7 @@ export enum FactoryEnum {
   NeoplasiaReactor = "NeoplasiaReactor",
   Electrolyzer = "Electrolyzer",
   AtmosphericConcentrator = "AtmosphericConcentrator",
-  CyanogenSynthesizer = "CyanogenSynthesizer"
+  CyanogenSynthesizer = "CyanogenSynthesizer",
 }
 
 export enum UnitBuildingEnum {
@@ -160,12 +160,12 @@ export enum UnitBuildingEnum {
   PrimeRefabricator = "PrimeRefabricator",
   TankAssembler = "TankAssembler",
   MechAssembler = "MechAssembler",
-  ShipAssembler = "ShipAssembler"
+  ShipAssembler = "ShipAssembler",
 }
 
 export enum BeaconEnum {
   OverdriveProjector = "OverdriveProjector",
-  OverdriveDome = "OverdriveDome"
+  OverdriveDome = "OverdriveDome",
 }
 
 export enum FloorsEnum {
@@ -186,7 +186,7 @@ export enum FloorsEnum {
   DarkSandTaintedWaterFloor = "DarkSandTaintedWaterFloor",
   MossFloor = "MossFloor",
   TaintedWaterFloor = "TaintedWaterFloor",
-  SporeMossFloor = "SporeMossFloor"
+  SporeMossFloor = "SporeMossFloor",
 }
 
 export enum WallsEnum {
@@ -199,13 +199,13 @@ export enum WallsEnum {
   YellowStoneWall = "YellowStoneWall",
   RedStoneWall = "RedStoneWall",
   SandWall = "SandWall",
-  DuneWall = "DuneWall"
+  DuneWall = "DuneWall",
 }
 
 export enum ResourceGroupEnum {
   Item = "Item",
   Fluid = "Fluid",
-  Other = "Other"
+  Other = "Other",
 }
 
 export enum BuildingGroupEnum {
@@ -218,7 +218,7 @@ export enum BuildingGroupEnum {
 export enum GameModeEnum {
   Serpulo = "Serpulo",
   Erekir = "Erekir",
-  Any = "Any"
+  Any = "Any",
 }
 
 // ==========================================================================================
@@ -230,17 +230,17 @@ export type DataType = {
   unitBuildings: Record<UnitBuildingEnum, UnitBuildingType>;
   beacons: Record<BeaconEnum, BeaconType>;
   recipes: Record<string, RecipeType>;
-}
+};
 
 export type ResourceType = {
   inGameModes: GameModeEnum[];
   group: ResourceGroupEnum;
-  producedBy: (BuildingEnum)[]
+  producedBy: BuildingEnum[];
   key: string;
   localizedName?: Record<string, string>;
   imageRow: number;
   imageCol: number;
-}
+};
 
 export type UnitBuildingType = {
   inGameModes: GameModeEnum[];
@@ -249,7 +249,7 @@ export type UnitBuildingType = {
   localizedName?: Record<string, string>;
   imageRow: number;
   imageCol: number;
-}
+};
 
 export type FactoryType = {
   inGameModes: GameModeEnum[];
@@ -258,7 +258,16 @@ export type FactoryType = {
   localizedName?: Record<string, string>;
   imageRow: number;
   imageCol: number;
-}
+  affinities?: Partial<
+    Record<
+      FloorsEnum,
+      {
+        affinity?: number;
+        efficiency?: number;
+      }
+    >
+  >;
+};
 
 export type ExtractorType = {
   inGameModes: GameModeEnum[];
@@ -267,9 +276,26 @@ export type ExtractorType = {
   localizedName?: Record<string, string>;
   imageRow: number;
   imageCol: number;
-  optionalEnhancements: Record<ResourceEnum, number>
-  resourceRates: Record<ResourceEnum, number>
-}
+  booster?: Partial<
+    Record<
+      ResourceEnum,
+      {
+        perSec: number;
+        speed: number;
+      }
+    >
+  >;
+  affinities?: Partial<
+    Record<
+      FloorsEnum,
+      {
+        affinity?: number;
+        efficiency?: number;
+      }
+    >
+  >;
+  resourceRates?: Partial<Record<ResourceEnum, number>>;
+};
 
 export type BeaconType = {
   inGameModes: GameModeEnum[];
@@ -278,27 +304,32 @@ export type BeaconType = {
   localizedName?: Record<string, string>;
   imageRow: number;
   imageCol: number;
-}
+};
 
 export type RecipeType = {
-  buildings: Partial<Record<BuildingEnum, {
-    input: {
-      name: ResourceEnum | UnitEnum;
-      perSec: number;
-    }[];
-    output: {
-      name: ResourceEnum | UnitEnum;
-      perSec: number;
-    }[];
-  }>>;
+  buildings: Partial<
+    Record<
+      BuildingEnum,
+      {
+        input: {
+          name: ResourceEnum | UnitEnum;
+          perSec: number;
+        }[];
+        output: {
+          name: ResourceEnum | UnitEnum;
+          perSec: number;
+        }[];
+      }
+    >
+  >;
   localizedName?: Record<string, string>;
   imageRow: number;
   imageCol: number;
-}
+};
 
 // ==========================================================================================
 
-export type BuildingEnum = FactoryEnum | ExtractorEnum | UnitBuildingEnum
+export type BuildingEnum = FactoryEnum | ExtractorEnum | UnitBuildingEnum;
 
 //===========================================================================================
 
@@ -312,23 +343,29 @@ export const data: DataType = {
         ExtractorEnum.PneumaticDrill,
         ExtractorEnum.LaserDrill,
         ExtractorEnum.AirblastDrill,
-        FactoryEnum.Separator
+        FactoryEnum.Separator,
       ],
       key: "copper",
       localizedName: {
-        "en": "Copper"
+        en: "Copper",
       },
       imageRow: 10,
-      imageCol: 11
+      imageCol: 11,
     },
     [ResourceEnum.Lead]: {
-      inGameModes: [],
+      inGameModes: [GameModeEnum.Serpulo],
       group: ResourceGroupEnum.Item,
-      producedBy: [],
-      key: "",
+      producedBy: [
+        ExtractorEnum.MechanicalDrill,
+        ExtractorEnum.PneumaticDrill,
+        ExtractorEnum.LaserDrill,
+        ExtractorEnum.AirblastDrill,
+        FactoryEnum.Separator,
+      ],
+      key: "lead",
       localizedName: undefined,
-      imageRow: 0,
-      imageCol: 0
+      imageRow: 4,
+      imageCol: 1,
     },
     [ResourceEnum.Coal]: {
       inGameModes: [GameModeEnum.Serpulo],
@@ -338,15 +375,15 @@ export const data: DataType = {
         ExtractorEnum.PneumaticDrill,
         ExtractorEnum.LaserDrill,
         ExtractorEnum.AirblastDrill,
-        FactoryEnum.CoalCentrifuge
+        FactoryEnum.CoalCentrifuge,
       ],
       key: "coal",
       localizedName: {
-        "en": "Coal",
-        "vi": "Than"
+        en: "Coal",
+        vi: "Than",
       },
       imageRow: 6,
-      imageCol: 11
+      imageCol: 11,
     },
     [ResourceEnum.Sand]: {
       inGameModes: [GameModeEnum.Serpulo, GameModeEnum.Erekir],
@@ -357,14 +394,14 @@ export const data: DataType = {
         ExtractorEnum.LaserDrill,
         ExtractorEnum.AirblastDrill,
         FactoryEnum.Pulverizer,
-        FactoryEnum.Disassembler
+        FactoryEnum.Disassembler,
       ],
       key: "sand",
       localizedName: {
-        "en": "Sand"
+        en: "Sand",
       },
       imageRow: 3,
-      imageCol: 8
+      imageCol: 8,
     },
     [ResourceEnum.Scrap]: {
       inGameModes: [],
@@ -373,7 +410,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Titanium]: {
       inGameModes: [],
@@ -382,7 +419,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Thorium]: {
       inGameModes: [],
@@ -391,7 +428,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Graphite]: {
       inGameModes: [],
@@ -400,7 +437,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Silicon]: {
       inGameModes: [GameModeEnum.Serpulo, GameModeEnum.Erekir],
@@ -408,15 +445,15 @@ export const data: DataType = {
       producedBy: [
         FactoryEnum.SiliconSmelter,
         FactoryEnum.SiliconCrucible,
-        FactoryEnum.SiliconArcFurnace
+        FactoryEnum.SiliconArcFurnace,
       ],
       key: "silicon",
       localizedName: {
-        "en": "Silicon",
-        "vi": "Silic"
+        en: "Silicon",
+        vi: "Silic",
       },
       imageRow: 9,
-      imageCol: 5
+      imageCol: 5,
     },
     [ResourceEnum.PhaseFabric]: {
       inGameModes: [],
@@ -425,16 +462,16 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.SurgeAlloy]: {
-      inGameModes: [],
+      inGameModes: [GameModeEnum.Serpulo],
       group: ResourceGroupEnum.Item,
-      producedBy: [],
-      key: "",
+      producedBy: [FactoryEnum.SurgeSmelter, FactoryEnum.SurgeCrucible],
+      key: "surge-alloy",
       localizedName: undefined,
-      imageRow: 0,
-      imageCol: 0
+      imageRow: 10,
+      imageCol: 0,
     },
     [ResourceEnum.BlastCompound]: {
       inGameModes: [],
@@ -443,7 +480,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Metaglass]: {
       inGameModes: [],
@@ -452,7 +489,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Plastanium]: {
       inGameModes: [],
@@ -461,7 +498,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Pyratite]: {
       inGameModes: [],
@@ -470,7 +507,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.SporePod]: {
       inGameModes: [],
@@ -479,7 +516,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Beryllium]: {
       inGameModes: [],
@@ -488,7 +525,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Tungsten]: {
       inGameModes: [],
@@ -497,7 +534,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Oxide]: {
       inGameModes: [],
@@ -506,7 +543,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Carbide]: {
       inGameModes: [],
@@ -515,16 +552,21 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Water]: {
-      inGameModes: [],
+      inGameModes: [GameModeEnum.Serpulo],
       group: ResourceGroupEnum.Fluid,
-      producedBy: [],
-      key: "",
+      producedBy: [
+        ExtractorEnum.WaterExtractor,
+        ExtractorEnum.MechanicalPump,
+        ExtractorEnum.RotaryPump,
+        ExtractorEnum.ImpulsePump,
+      ],
+      key: "water",
       localizedName: undefined,
-      imageRow: 0,
-      imageCol: 0
+      imageRow: 5,
+      imageCol: 10,
     },
     [ResourceEnum.Slag]: {
       inGameModes: [],
@@ -533,7 +575,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Arkycite]: {
       inGameModes: [],
@@ -542,7 +584,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Neoplasm]: {
       inGameModes: [],
@@ -551,7 +593,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Oil]: {
       inGameModes: [],
@@ -560,7 +602,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Cryofluid]: {
       inGameModes: [],
@@ -569,7 +611,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Hydrogen]: {
       inGameModes: [],
@@ -578,7 +620,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Ozone]: {
       inGameModes: [],
@@ -587,7 +629,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Nitrogen]: {
       inGameModes: [],
@@ -596,7 +638,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Cyanogen]: {
       inGameModes: [],
@@ -605,7 +647,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ResourceEnum.Heat]: {
       inGameModes: [],
@@ -614,8 +656,8 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
-    }
+      imageCol: 0,
+    },
   },
   factories: {
     [FactoryEnum.BlastMixer]: {
@@ -624,7 +666,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.CoalCentrifuge]: {
       inGameModes: [],
@@ -632,7 +674,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.CryofluidMixer]: {
       inGameModes: [],
@@ -640,7 +682,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.Disassembler]: {
       inGameModes: [],
@@ -648,7 +690,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.GraphitePress]: {
       inGameModes: [],
@@ -656,7 +698,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.Kiln]: {
       inGameModes: [],
@@ -664,7 +706,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.Melter]: {
       inGameModes: [],
@@ -672,7 +714,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.MultiPress]: {
       inGameModes: [],
@@ -680,7 +722,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.PhaseWeaver]: {
       inGameModes: [],
@@ -688,7 +730,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.PlastaniumCompressor]: {
       inGameModes: [],
@@ -696,7 +738,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.Pulverizer]: {
       inGameModes: [],
@@ -704,7 +746,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.PyratiteMixer]: {
       inGameModes: [],
@@ -712,7 +754,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.Separator]: {
       inGameModes: [],
@@ -720,7 +762,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.SiliconCrucible]: {
       inGameModes: [],
@@ -728,17 +770,17 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.SiliconSmelter]: {
       inGameModes: [GameModeEnum.Serpulo],
       energyUsage: 30,
       key: "silicon-smelter",
       localizedName: {
-        "en": "Silicon Smelter"
+        en: "Silicon Smelter",
       },
       imageRow: 9,
-      imageCol: 8
+      imageCol: 8,
     },
     [FactoryEnum.SporePress]: {
       inGameModes: [],
@@ -746,15 +788,15 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.SurgeSmelter]: {
-      inGameModes: [],
-      energyUsage: 0,
-      key: "",
+      inGameModes: [GameModeEnum.Serpulo],
+      energyUsage: 240,
+      key: "surge-smelter",
       localizedName: undefined,
-      imageRow: 0,
-      imageCol: 0
+      imageRow: 10,
+      imageCol: 2,
     },
     [FactoryEnum.SiliconArcFurnace]: {
       inGameModes: [],
@@ -762,7 +804,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.PhaseSynthesizer]: {
       inGameModes: [],
@@ -770,7 +812,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.SurgeCrucible]: {
       inGameModes: [],
@@ -778,7 +820,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.TurbineCondenser]: {
       inGameModes: [],
@@ -786,7 +828,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.VentCondenser]: {
       inGameModes: [],
@@ -794,7 +836,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.PyrolysisGenerator]: {
       inGameModes: [],
@@ -802,7 +844,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.OxidationChamber]: {
       inGameModes: [],
@@ -810,7 +852,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.CarbideCrucible]: {
       inGameModes: [],
@@ -818,7 +860,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.NeoplasiaReactor]: {
       inGameModes: [],
@@ -826,7 +868,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.Electrolyzer]: {
       inGameModes: [],
@@ -834,7 +876,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.AtmosphericConcentrator]: {
       inGameModes: [],
@@ -842,7 +884,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [FactoryEnum.CyanogenSynthesizer]: {
       inGameModes: [],
@@ -850,8 +892,8 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
-    }
+      imageCol: 0,
+    },
   },
   extractors: {
     [ExtractorEnum.AirblastDrill]: {
@@ -859,43 +901,52 @@ export const data: DataType = {
       energyUsage: 180,
       key: "airblast-drill",
       localizedName: {
-        "en": "Airblast drill"
+        en: "Airblast drill",
       },
       imageRow: 10,
-      imageCol: 10
+      imageCol: 10,
     },
     [ExtractorEnum.LaserDrill]: {
       inGameModes: [GameModeEnum.Serpulo],
-      group: BuildingGroupEnum.Extractor,
       energyUsage: 66,
       key: "laser-drill",
       localizedName: {
-        "en": "Laser drill"
+        en: "Laser drill",
       },
       imageRow: 4,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.PneumaticDrill]: {
       inGameModes: [GameModeEnum.Serpulo],
-      group: BuildingGroupEnum.Extractor,
       energyUsage: 0,
       key: "pneumatic-drill",
       localizedName: {
-        "en": "Pneumatic drill"
+        en: "Pneumatic drill",
       },
       imageRow: 0,
-      imageCol: 7
+      imageCol: 7,
+      booster: {
+        [ResourceEnum.Water]: {
+          perSec: 3.6,
+          speed: 2.56,
+        },
+      },
     },
     [ExtractorEnum.MechanicalDrill]: {
       inGameModes: [GameModeEnum.Serpulo],
-      group: BuildingGroupEnum.Extractor,
       energyUsage: 0,
       key: "mechanical-drill",
       localizedName: {
-        "en": "Mechanical drill"
+        en: "Mechanical drill",
       },
       imageRow: 1,
-      imageCol: 4
+      imageCol: 4,
+      booster: {
+        [ResourceEnum.Water]: {
+          perSec: 3,
+          speed: 2.56,
+        },
+      },
     },
     [ExtractorEnum.MechanicalPump]: {
       inGameModes: [],
@@ -903,7 +954,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.ImpulsePump]: {
       inGameModes: [],
@@ -911,7 +962,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.RotaryPump]: {
       inGameModes: [],
@@ -919,7 +970,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.OilExtractor]: {
       inGameModes: [],
@@ -927,7 +978,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.Cultivator]: {
       inGameModes: [],
@@ -935,15 +986,27 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.WaterExtractor]: {
-      inGameModes: [],
-      energyUsage: 0,
-      key: "",
+      inGameModes: [GameModeEnum.Serpulo],
+      energyUsage: 90,
+      key: "water-extractor",
       localizedName: undefined,
-      imageRow: 0,
-      imageCol: 0
+      imageRow: 6,
+      imageCol: 10,
+      affinities: {
+        [FloorsEnum.MagmaRock]: { affinity: -0.75 },
+        [FloorsEnum.HotRock]: { affinity: -0.5 },
+        [FloorsEnum.SaltFloor]: { affinity: -0.3 },
+        [FloorsEnum.BasaltFloor]: { affinity: -0.25 },
+        [FloorsEnum.GrassFloor]: { affinity: 0.1 },
+        [FloorsEnum.SnowFloor]: { affinity: 0.2 },
+        [FloorsEnum.IceSnowFloor]: { affinity: 0.3 },
+        [FloorsEnum.IceFloor]: { affinity: 0.4 },
+        [FloorsEnum.RedIceFloor]: { affinity: 0.4 },
+        [FloorsEnum.MudFloor]: { affinity: 1 },
+      },
     },
     [ExtractorEnum.CliffCrusher]: {
       inGameModes: [],
@@ -951,7 +1014,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.PlasmaBore]: {
       inGameModes: [],
@@ -959,7 +1022,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.LargePlasmaBore]: {
       inGameModes: [],
@@ -967,7 +1030,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.EruptionDrill]: {
       inGameModes: [],
@@ -975,7 +1038,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.ReinforcedPump]: {
       inGameModes: [],
@@ -983,7 +1046,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [ExtractorEnum.ImpactDrill]: {
       inGameModes: [],
@@ -991,8 +1054,8 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
-    }
+      imageCol: 0,
+    },
   },
   unitBuildings: {
     [UnitBuildingEnum.AdditiveReconstructor]: {
@@ -1001,7 +1064,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.AirFactory]: {
       inGameModes: [],
@@ -1009,7 +1072,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.ExponentialReconstructor]: {
       inGameModes: [],
@@ -1017,7 +1080,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.GroundFactory]: {
       inGameModes: [],
@@ -1025,7 +1088,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.MultiplicativeReconstructor]: {
       inGameModes: [],
@@ -1033,7 +1096,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.NavalFactory]: {
       inGameModes: [],
@@ -1041,7 +1104,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.TetrativeReconstructor]: {
       inGameModes: [],
@@ -1049,7 +1112,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.TankFabricator]: {
       inGameModes: [],
@@ -1057,7 +1120,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.MechFabricator]: {
       inGameModes: [],
@@ -1065,7 +1128,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.ShipFabricator]: {
       inGameModes: [],
@@ -1073,7 +1136,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.TankRefabricator]: {
       inGameModes: [],
@@ -1081,7 +1144,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.MechRefabricator]: {
       inGameModes: [],
@@ -1089,7 +1152,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.ShipRefabricator]: {
       inGameModes: [],
@@ -1097,7 +1160,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.PrimeRefabricator]: {
       inGameModes: [],
@@ -1105,7 +1168,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.TankAssembler]: {
       inGameModes: [],
@@ -1113,7 +1176,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.MechAssembler]: {
       inGameModes: [],
@@ -1121,7 +1184,7 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
     [UnitBuildingEnum.ShipAssembler]: {
       inGameModes: [],
@@ -1129,30 +1192,30 @@ export const data: DataType = {
       key: "",
       localizedName: undefined,
       imageRow: 0,
-      imageCol: 0
-    }
+      imageCol: 0,
+    },
   },
   beacons: {
     [BeaconEnum.OverdriveProjector]: {
       inGameModes: [GameModeEnum.Serpulo],
-      distributionEffectivity: .5,
+      distributionEffectivity: 0.5,
       energyUsage: 0,
       localizedName: {
-        "en": "Overdrive projector"
+        en: "Overdrive projector",
       },
       imageRow: 2,
-      imageCol: 6
+      imageCol: 6,
     },
     [BeaconEnum.OverdriveDome]: {
       inGameModes: [GameModeEnum.Serpulo],
       distributionEffectivity: 1.5,
       energyUsage: 0,
       localizedName: {
-        "en": "Overdrive dome"
+        en: "Overdrive dome",
       },
       imageRow: 1,
-      imageCol: 6
-    }
+      imageCol: 6,
+    },
   },
   recipes: {
     // "silicon": {
@@ -1169,59 +1232,121 @@ export const data: DataType = {
     //   imageRow: 9,
     //   imageCol: 5
     // },
-    "silicon": {
+    silicon: {
       buildings: {
         [FactoryEnum.SiliconSmelter]: {
           input: [
             {
               name: ResourceEnum.Sand,
-              perSec: 3
+              perSec: 3,
             },
             {
               name: ResourceEnum.Coal,
-              perSec: 1.5
-            }
+              perSec: 1.5,
+            },
           ],
           output: [
             {
               name: ResourceEnum.Silicon,
-              perSec: 1.5
-            }
-          ]
-        }
+              perSec: 1.5,
+            },
+          ],
+        },
       },
       imageRow: 9,
-      imageCol: 5
+      imageCol: 5,
     },
-    "sand": {
+    sand: {
       buildings: {
         [ExtractorEnum.MechanicalDrill]: {
           input: [],
           output: [
             {
               name: ResourceEnum.Sand,
-              perSec: 0.4
-            }
-          ]
-        }
+              perSec: 0.4,
+            },
+          ],
+        },
       },
       imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
     },
-    "coal": {
+    coal: {
       buildings: {
         [ExtractorEnum.MechanicalDrill]: {
           input: [],
           output: [
             {
               name: ResourceEnum.Coal,
-              perSec: 0.34
+              perSec: 0.34,
+            },
+          ],
+        },
+      },
+      imageRow: 0,
+      imageCol: 0,
+    },
+    lead: {
+      buildings: {
+        [ExtractorEnum.MechanicalDrill]: {
+          input: [],
+          output: [
+            {
+              name: ResourceEnum.Lead,
+              perSec: 3.6,
+            },
+          ],
+        },
+      },
+      imageRow: 0,
+      imageCol: 0,
+    },
+    "surge-alloy": {
+      buildings: {
+        [FactoryEnum.SurgeSmelter]: {
+          input: [
+            {
+              name: ResourceEnum.Copper,
+              perSec: 2.4,
+            },
+            {
+              name: ResourceEnum.Lead,
+              perSec: 3.2,
+            },
+            {
+              name: ResourceEnum.Titanium,
+              perSec: 1.6,
+            },
+            {
+              name: ResourceEnum.Silicon,
+              perSec: 2.4,
+            },
+          ],
+          output: [
+            {
+              name: ResourceEnum.SurgeAlloy,
+              perSec: 0.8,
+            },
+          ],
+        },
+      },
+      imageRow: 0,
+      imageCol: 0,
+    },
+    "water": {
+      buildings: {
+        [ExtractorEnum.WaterExtractor]: {
+          input: [],
+          output: [
+            {
+              name: ResourceEnum.Water,
+              perSec: 6.6
             }
           ]
         }
       },
-      imageRow: 0,
-      imageCol: 0
+      imageCol: 0,
+      imageRow: 0
     }
-  }
-}
+  },
+};

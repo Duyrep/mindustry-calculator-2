@@ -9,21 +9,23 @@ import {
   calculateFactoryRequirements,
   FactoryRequirementsResult,
 } from "@/types/calculations/factory";
-import { ResourceEnum } from "@/types/data/vanilla-7.0";
-import { getBeaconByBuilding } from "@/types/utils";
+import { BeaconEnum, FloorsEnum, ResourceEnum } from "@/types/data/vanilla-7.0";
+import {
+  getAffinitiesByBuilding,
+  getBeaconByBuilding,
+  getBoostersByBuilding,
+} from "@/types/utils";
 import { useContext, useEffect, useRef, useState } from "react";
 
 export default function Factory() {
   const settings = useContext(SettingsContext).settingsState[0];
   const target = useContext(TargetContext).target;
   const productsPerSec = useContext(TargetContext).productsPerSec;
+  const factoryTable = useRef<HTMLDivElement | null>(null);
   const [result, setResult] = useState<FactoryRequirementsResult>({
     result: [],
     totalEnergyUsage: 0,
   });
-  const [boostVisibility, setBoostVisibility] = useState<
-    Record<string, boolean>
-  >({});
 
   useEffect(() => {
     const result = calculateFactoryRequirements(
@@ -33,18 +35,6 @@ export default function Factory() {
     );
     setResult(result);
   }, [target, productsPerSec, settings]);
-
-  useEffect(() => {
-    const boostVisibility: Record<string, boolean> = {};
-    result.result.forEach(({ buildingName, productName }) => {
-      const beacons = getBeaconByBuilding(buildingName, settings);
-      if (beacons) {
-        boostVisibility[productName] = false;
-      }
-    });
-
-    setBoostVisibility(boostVisibility);
-  }, []);
 
   return (
     <>
@@ -62,21 +52,18 @@ export default function Factory() {
         }}
       >
         <div
+          ref={factoryTable}
           className="relative flex px-1 pb-1 overflow-x-auto"
-          onScroll={() =>
-            Object.keys(boostVisibility).map((productName) =>
-              setBoostVisibility((prev) => ({ ...prev, [productName]: false }))
-            )
-          }
         >
-          <table className="w-max h-max">
+          <table className="w-max h-max</div>">
             <thead>
               <tr className="border-b border-surface-a30">
                 {[
                   "Buildings",
                   `Items/${settings.displayRate.charAt(0)}`,
-                  "Beacon",
+                  "Affinities",
                   "Boosts",
+                  "Beacons",
                 ].map((value) => (
                   <th key={value} className="p-2">
                     {value}
@@ -100,20 +87,33 @@ export default function Factory() {
                       key={index}
                       className="border-b border-surface-a30 text-xs"
                     >
-                      <Buildings
-                        buildingName={buildingName}
-                        numOfBuilding={numOfBuilding}
-                      />
-                      <Items
-                        productName={productName}
-                        numOfProductsPerSec={numOfProductsPerSec}
-                      />
-                      <Beacon
-                        buildingName={buildingName}
-                        productName={productName}
-                        boostVisibility={boostVisibility}
-                        setBoostVisibility={setBoostVisibility}
-                      />
+                      {factoryTable.current && (
+                        <>
+                          <Buildings
+                            buildingName={buildingName}
+                            numOfBuilding={numOfBuilding}
+                          />
+                          <Items
+                            productName={productName}
+                            numOfProductsPerSec={numOfProductsPerSec}
+                          />
+                          <Affinities
+                            factoryTable={factoryTable.current}
+                            buildingName={buildingName}
+                            productName={productName}
+                          />
+                          <Boosts
+                            factoryTable={factoryTable.current}
+                            buildingName={buildingName}
+                            productName={productName}
+                          />
+                          <Beacons
+                            factoryTable={factoryTable.current}
+                            buildingName={buildingName}
+                            productName={productName}
+                          />
+                        </>
+                      )}
                     </tr>
                   );
                 }
@@ -191,90 +191,311 @@ const Items = ({
   );
 };
 
-const Beacon = ({
-  buildingName,
-  productName,
-  boostVisibility,
-  setBoostVisibility,
+const Dropdown = ({
+  children,
+  factoryTable,
+  image,
 }: {
-  buildingName: string;
-  productName: string;
-  boostVisibility: Record<string, boolean>;
-  setBoostVisibility: React.Dispatch<
-    React.SetStateAction<Record<string, boolean>>
-  >;
+  children: React.ReactNode;
+  factoryTable: HTMLDivElement;
+  image?: string;
 }) => {
-  const settings = useContext(SettingsContext).settingsState[0];
-  const beacons = getBeaconByBuilding(buildingName, settings);
+  const [show, setShow] = useState(false);
+  const button = useRef<HTMLDivElement | null>(null);
   const dropdown = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLDivElement;
-      if (dropdown.current && !dropdown.current.contains(target)) {
-        setBoostVisibility((prev) => ({
-          ...prev,
-          [productName]: false,
-        }));
+    const updateDropdown = () => {
+      if (dropdown.current && button.current) {
+        const rect = button.current.getBoundingClientRect();
+
+        dropdown.current.style.top = rect.y + rect.height + "px";
+        dropdown.current.style.left = rect.x + "px";
+        dropdown.current.style.transition = "none";
       }
     };
 
-    document.addEventListener("click", handleClickOutside);
+    const handleClick = (event: MouseEvent) => {
+      if (
+        button.current &&
+        !button.current.contains(event.target as HTMLDivElement)
+      ) {
+        setShow(false);
+      }
+    };
 
-    return () => document.removeEventListener("click", handleClickOutside);
+    const handleWindowScroll = () => updateDropdown()
+    const handleScroll = () => updateDropdown()
+
+    window.addEventListener("scroll", handleWindowScroll);
+    factoryTable.addEventListener("scroll", handleScroll);
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      window.addEventListener("scroll", handleWindowScroll);
+      factoryTable.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("click", handleClick);
+    };
   }, []);
 
   return (
-    <td>
-      <div ref={dropdown} className="flex flex-wrap justify-center select-none">
-        <div
-          className="border border-surface-a20 rounded-md p-1 cursor-pointer"
-          onClick={() =>
-            setBoostVisibility((prev) => ({
-              ...prev,
-              [productName]: !prev[productName],
-            }))
-          }
-        >
-          {settings.gameSettings[settings.gameMode].beacons[
-            productName as ResourceEnum
-          ] ? (
-            <CustomImage
-              name={
-                settings.gameSettings[settings.gameMode].beacons[
-                  productName as ResourceEnum
-                ] ?? "OhNo"
-              }
-            />
-          ) : (
-            <div className="flex items-center w-[32px] h-[32px]">None</div>
-          )}
-        </div>
-        <div
-          className={`fixed bg-surface-a20 rounded-md z-10 mr-2 transition-all overflow-hidden ${
-            !boostVisibility[productName] && "h-0"
-          }`}
-          style={{
-            top: `${
-              dropdown.current &&
-              dropdown.current.getBoundingClientRect().y + 44
-            }px`,
-            left: `${
-              dropdown.current &&
-              dropdown.current.getBoundingClientRect().x + 14
-            }px`,
-          }}
-        >
-          <div className="p-1 flex flex-wrap gap-1">
-            {beacons &&
-              beacons.map((beaconName) => (
-                <div key={beaconName} className="cursor-pointer">
-                  <CustomImage name={beaconName} />
-                </div>
-              ))}
-          </div>
+    <div className="flex justify-center">
+      <div
+        ref={button}
+        className="border border-surface-a20 rounded-md p-1 cursor-pointer hover:border-primary transition-colors"
+        onClick={() => setShow(!show)}
+      >
+        <div className="flex rounded-md items-center w-8 h-8 select-none">
+          {image ? <CustomImage name={image} /> : "None"}
         </div>
       </div>
+      {button.current && (
+        <div
+          ref={dropdown}
+          className={`fixed overflow-hidden transition-all z-10 ${
+            !show && "h-0"
+          } mr-2`}
+          style={{
+            top:
+              button.current.getBoundingClientRect().y +
+              button.current.getBoundingClientRect().height +
+              "px",
+            left: button.current.getBoundingClientRect().x + "px",
+          }}
+        >
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Beacons = ({
+  buildingName,
+  productName,
+  factoryTable,
+}: {
+  factoryTable: HTMLDivElement;
+  buildingName: string;
+  productName: string;
+}) => {
+  const [settings, setSettings] = useContext(SettingsContext).settingsState;
+  const beacons = getBeaconByBuilding(buildingName, settings);
+
+  return (
+    <td>
+      <Dropdown
+        image={
+          settings.gameSettings[settings.gameMode].beacons[
+            productName as ResourceEnum
+          ]
+        }
+        factoryTable={factoryTable}
+      >
+        <div className="p-1 border border-surface-a30 bg-surface-a20 rounded-md inline-flex flex-wrap gap-1">
+          {beacons &&
+            [undefined, ...Object.keys(beacons)].map((beaconName, idx) => (
+              <div
+                key={beaconName ?? `none-${idx}`}
+                className={`cursor-pointer p-1 rounded-md ${
+                  beaconName ==
+                  settings.gameSettings[settings.gameMode].beacons[
+                    productName as ResourceEnum
+                  ]
+                    ? "bg-primary"
+                    : "bg-surface-a10"
+                }`}
+                onClick={() => {
+                  setSettings((prev) => {
+                    const newSettings = { ...prev };
+                    if (
+                      settings.gameSettings[settings.gameMode].beacons[
+                        productName as ResourceEnum
+                      ] == beaconName
+                    ) {
+                      delete newSettings.gameSettings[prev.gameMode].beacons[
+                        productName as ResourceEnum
+                      ];
+                    } else {
+                      newSettings.gameSettings[prev.gameMode].beacons[
+                        productName as ResourceEnum
+                      ] = beaconName as BeaconEnum;
+                    }
+                    return newSettings;
+                  });
+                }}
+              >
+                {beaconName ? (
+                  <div className="flex flex-col items-center">
+                    <CustomImage key={beaconName} name={beaconName} />
+                    <span>{formatPercentage(beacons[beaconName])}</span>
+                  </div>
+                ) : (
+                  <div
+                    key={`none-${idx}`}
+                    className="flex items-center justify-center w-8 min-h-8 h-full select-none"
+                  >
+                    None
+                  </div>
+                )}
+              </div>
+            ))}
+        </div>
+      </Dropdown>
     </td>
   );
+};
+
+const Boosts = ({
+  buildingName,
+  productName,
+  factoryTable,
+}: {
+  factoryTable: HTMLDivElement;
+  buildingName: string;
+  productName: string;
+}) => {
+  const [settings, setSettings] = useContext(SettingsContext).settingsState;
+  const boosts = getBoostersByBuilding(buildingName);
+
+  return (
+    <td>
+      {boosts && (
+        <Dropdown
+          image={
+            settings.gameSettings[settings.gameMode].boosts[productName]?.[
+              buildingName
+            ]
+          }
+          factoryTable={factoryTable}
+        >
+          <div className="flex flex-wrap gap-1 p-1 bg-surface-a20 rounded-md border border-surface-a30">
+            {[undefined, ...Object.keys(boosts)].map((resourceName, idx) => (
+              <div
+                key={idx}
+                className={`cursor-pointer p-1 rounded-md ${
+                  settings.gameSettings[settings.gameMode].boosts[
+                    productName
+                  ]?.[buildingName] == resourceName
+                    ? "bg-primary"
+                    : "bg-surface-a10"
+                }`}
+                onClick={() =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    gameSettings: {
+                      ...prev.gameSettings,
+                      [prev.gameMode]: {
+                        ...prev.gameSettings[prev.gameMode],
+                        boosts: {
+                          ...prev.gameSettings[prev.gameMode].boosts,
+                          [productName]: {
+                            ...prev.gameSettings[prev.gameMode].boosts[
+                              productName
+                            ],
+                            [buildingName]: resourceName,
+                          },
+                        },
+                      },
+                    },
+                  }))
+                }
+              >
+                {resourceName ? (
+                  <div className="flex flex-col items-center">
+                    <CustomImage key={resourceName} name={resourceName} />
+                    <span>x{boosts[resourceName as ResourceEnum].speed}</span>
+                  </div>
+                ) : (
+                  <div
+                    key={`none-${idx}`}
+                    className="flex items-center justify-center w-8 min-h-8 h-full select-none"
+                  >
+                    None
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Dropdown>
+      )}
+    </td>
+  );
+};
+
+const Affinities = ({
+  buildingName,
+  productName,
+  factoryTable,
+}: {
+  factoryTable: HTMLDivElement;
+  buildingName: string;
+  productName: string;
+}) => {
+  const [settings, setSettings] = useContext(SettingsContext).settingsState;
+  const affinities = getAffinitiesByBuilding(buildingName);
+
+  return (
+    <td>
+      {affinities && (
+        <Dropdown
+          factoryTable={factoryTable}
+          image={
+            settings.gameSettings[settings.gameMode].affinities[productName]?.[
+              buildingName
+            ]
+          }
+        >
+          <div className="flex flex-wrap gap-1 bg-surface-a20 rounded-md p-1">
+            {[undefined, ...Object.keys(affinities)].map((floorName, idx) => (
+              <div
+                key={idx}
+                className="flex justify-center items-center p-1 bg-surface-a10 rounded-md cursor-pointer"
+                onClick={() =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    gameSettings: {
+                      ...prev.gameSettings,
+                      [prev.gameMode]: {
+                        ...prev.gameSettings[prev.gameMode],
+                        affinities: {
+                          [productName]: {
+                            ...prev.gameSettings[prev.gameMode].affinities[
+                              productName
+                            ],
+                            [buildingName]: floorName,
+                          },
+                        },
+                      },
+                    },
+                  }))
+                }
+              >
+                {floorName ? (
+                  <div className="flex flex-col items-center justify-center select-none">
+                    <CustomImage name={floorName} />
+                    <span>
+                      {affinities[floorName as FloorsEnum]?.efficiency
+                        ? affinities[floorName as FloorsEnum]?.efficiency
+                        : formatPercentage(
+                            affinities[floorName as FloorsEnum]?.affinity ?? 0
+                          )}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 flex items-center justify-center select-none">
+                    None
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </Dropdown>
+      )}
+    </td>
+  );
+};
+
+const formatPercentage = (number: number) => {
+  return `${number * 100 > 0 ? "+" : ""}${number * 100}%`;
 };

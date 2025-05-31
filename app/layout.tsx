@@ -2,7 +2,6 @@ import { SettingsProvider } from "@/context/SettingsContext";
 import "./globals.css";
 import Header from "@/components/Header";
 import { TargetProvider } from "@/context/TargetContext";
-import InputTarget from "@/components/InputTarget";
 
 
 export default function RootLayout({
