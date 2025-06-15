@@ -4,13 +4,15 @@ import { useContext } from "react";
 import CustomDetails from "../CustomDetails";
 import { SettingsContext } from "@/context/SettingsContext";
 import { GameModeEnum } from "@/types/data/vanilla-7.0";
+import { useTranslation } from "react-i18next";
 
 export default function GeneralSettings() {
+  const { t } = useTranslation()
   const [settings, setSettings] = useContext(SettingsContext).settingsState
 
   return (
     <CustomDetails
-      summary="General"
+      summary={t("General")}
       className="rounded-t-md transition-all duration-200"
       onChange={(open, target) => {
         if (open) {
@@ -29,7 +31,7 @@ export default function GeneralSettings() {
         </thead>
         <tbody>
           <tr>
-            <td className="text-right">Language: </td>
+            <td className="text-right">{t("Language")}: </td>
             <td>
               <select
                 className="outline-none cursor-pointer"
@@ -52,7 +54,7 @@ export default function GeneralSettings() {
             </td>
           </tr>
           <tr>
-            <td className="text-left">Display rates as:</td>
+            <td className="text-left">{t("Display rates as")}:</td>
             <td>
               <div className="flex flex-wrap gap-2">
                 {["second", "minute", "hour"].map((rate) => (
@@ -60,13 +62,13 @@ export default function GeneralSettings() {
                     key={rate}
                     className={`select-none rounded-md p-1 px-2 cursor-pointer duration-100 ${rate == settings.displayRate ? "bg-primary" : "bg-surface-a20"}`}
                     onClick={() => setSettings(prev => ({ ...prev, displayRate: rate }))}
-                  >{rate}</div>
+                  >{t(rate)}</div>
                 ))}
               </div>
             </td>
           </tr>
           <tr>
-            <td className="text-right">Game mode:</td>
+            <td className="text-right">{t("Game mode")}:</td>
             <td>
               <div className="flex flex-wrap gap-2">
                 {Object.values(GameModeEnum).map((mode) => (

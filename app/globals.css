@@ -89,10 +89,10 @@ body {
 }
 
 hr {
-  @apply border-surface-a40 border-2 mb-2;
+  @apply border-surface-a40 border;
 }
 
-input[type="number"] {
+input {
   @apply bg-surface-a20 rounded-md outline-none;
 }
 
@@ -101,9 +101,18 @@ input[type="number"]::-webkit-inner-spin-button {
   display: none;
 }
 
+button {
+  cursor: pointer;
+  outline: none;
+}
+
+#graph-container rect, path, polygon {
+  transition: stroke .15s ease, fill 0.5s ease;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
-  height: 6px
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {

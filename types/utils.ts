@@ -1,20 +1,81 @@
 import {
   BeaconEnum,
-  BeaconType,
   BuildingEnum,
   data,
-  ExtractorEnum,
-  ExtractorType,
-  FactoryEnum,
-  FactoryType,
+  FloorEnum,
   GameModeEnum,
-  ResourceEnum,
-  ResourceType,
-  UnitBuildingEnum,
-  UnitBuildingType,
-  UnitEnum,
-} from "./data/vanilla-7.0";
+  ItemEnum,
+  recipes,
+} from "./data/vanilla-v8";
 import { GameSettingsType, SettingsType } from "./types";
+
+export function getProductsPerSec(name: string, settings: SettingsType) {
+  const item = getItem(name);
+  if (!item) return { perSec: NaN, usedBoost: undefined };
+
+  const recipe = getRecipe(item.name);
+  if (!recipe) return { perSec: NaN, usedBoost: undefined };
+
+  const buildingName = settings.gameSettings[settings.gameMode].items[name];
+  const building = getBuilding(buildingName);
+  if (!building) return { perSec: NaN, usedBoost: undefined };
+
+  let perSec = recipe[buildingName]?.output.find(
+    (value) => value.name === name
+  )?.perSec;
+  if (!perSec) return { perSec: NaN, usedBoost: undefined };
+
+  const beacon = getBeacon(
+    settings.gameSettings[settings.gameMode].beacons[name as ItemEnum] ?? ""
+  );
+  if (beacon) {
+    perSec += perSec * beacon.speedIncrease;
+  }
+
+  const booster = getBoostersByBuilding(buildingName);
+  const boostName =
+    settings.gameSettings[settings.gameMode].boosts[name]?.[buildingName];
+  let usedBoost;
+  if (booster && boostName) {
+    perSec *= booster[boostName as ItemEnum]?.speedBoost ?? 1;
+    usedBoost = {
+      name: boostName,
+      perSec: booster[boostName as ItemEnum]?.perSec ?? NaN,
+    };
+  }
+
+  const affinities = getAffinitiesByBuilding(buildingName);
+  const affinityName = settings.gameSettings[settings.gameMode].affinities[name]?.[buildingName]
+  if (affinities && affinityName) {
+    const affinity = affinities[affinityName as FloorEnum]?.affinity
+    const efficiency = affinities[affinityName as FloorEnum]?.efficiency
+    if (affinity) {
+      perSec += perSec * affinity
+    }
+    if (efficiency) {
+      perSec += perSec * efficiency
+    }
+  }
+
+  return { perSec, usedBoost };
+}
+
+export function calculateProductsPerSec(
+  target: string,
+  numOfBuilding: number,
+  settings: SettingsType
+) {
+  return getProductsPerSec(target, settings).perSec * numOfBuilding;
+}
+
+export function calculateNumOfBuilding(
+  target: string,
+  productsPerSec: number,
+  settings: SettingsType
+) {
+  const { perSec, usedBoost } = getProductsPerSec(target, settings)
+  return { numOfBuilding: productsPerSec / perSec, usedBoost };
+}
 
 export function getDefaultSettings(): SettingsType {
   const gameSettings = {} as Record<GameModeEnum, GameSettingsType>;
@@ -26,214 +87,90 @@ export function getDefaultSettings(): SettingsType {
     theme: "dark",
     lang: "en",
     displayRate: "second",
-    graphDirection: 0,
+    graphDirection: "TB",
 
     gameMode: GameModeEnum.Serpulo,
     gameSettings: gameSettings,
   };
 }
 
-function getDefaultGameSettings(gameMode: GameModeEnum): GameSettingsType {
-  const resources = {} as Partial<Record<ResourceEnum, BuildingEnum>>;
-
-  Object.values(ResourceEnum).forEach((resourceName) => {
-    const resource = getResource(resourceName);
+export function getDefaultGameSettings(
+  gameMode: GameModeEnum
+): GameSettingsType {
+  const itemSettings = {} as Record<string, string>;
+  Object.values(ItemEnum).forEach((itemName) => {
+    const item = getItem(itemName);
     if (
-      resource &&
-      resource.inGameModes.includes(gameMode) &&
-      resource.producedBy.length > 1
+      item &&
+      (item.inGameModes.includes(gameMode) || gameMode === GameModeEnum.Any)
     ) {
-      for (const buildingName of resource.producedBy) {
-        const building = getBuilding(buildingName);
-        if (building && building.inGameModes.includes(gameMode)) {
-          resources[resourceName] = buildingName;
-          break;
-        }
-      }
+      const buildingName = item.producedBy[0];
+      const building = getBuilding(buildingName);
+
+      if (!building) return;
+      if (
+        !building.inGameModes.includes(gameMode) &&
+        gameMode !== GameModeEnum.Any
+      )
+        return;
+
+      itemSettings[itemName] = buildingName.length === 0 ? "" : buildingName;
     }
   });
 
   return {
-    resources: resources,
+    items: itemSettings,
     beacons: Object.fromEntries(
-      Object.keys(ResourceEnum).map((key) => [key, undefined])
+      Object.keys(ItemEnum)
+        .map((key) => {
+          const item = getItem(key);
+          if (!item) return [];
+          if (!item.inGameModes.includes(gameMode)) return [];
+          return [key, null];
+        })
+        .filter((value) => value.length != 0)
     ),
     boosts: {},
     affinities: {},
   };
 }
 
-export function getBuilding(
-  name: string | undefined
-): ExtractorType | FactoryType | UnitBuildingType | null {
-  if (Object.values(ExtractorEnum).includes(name as ExtractorEnum)) {
-    return data.extractors[name as ExtractorEnum];
-  } else if (Object.values(FactoryEnum).includes(name as FactoryEnum)) {
-    return data.factories[name as FactoryEnum];
-  } else if (
-    Object.values(UnitBuildingEnum).includes(name as UnitBuildingEnum)
-  ) {
-    return data.unitBuildings[name as UnitBuildingEnum];
-  }
-  return null;
+export function getTimeUnitInSeconds(settings: SettingsType) {
+  return settings.displayRate == "minute"
+    ? 60
+    : settings.displayRate == "hour"
+    ? 3600
+    : 1;
 }
 
-export function getBeacon(name: string | undefined): BeaconType | null {
-  if (Object.values(BeaconEnum).includes(name as BeaconEnum)) {
-    return data.beacons[name as BeaconEnum];
-  } else return null;
+export function getItem(name: string) {
+  if (!Object.values(ItemEnum).includes(name as ItemEnum)) return;
+  return data.items[name as ItemEnum];
 }
 
-export function getResource(name: string | undefined): ResourceType | null {
-  if (Object.values(ResourceEnum).includes(name as ResourceEnum)) {
-    return data.resources[name as ResourceEnum];
-  } else return null;
+export function getBuilding(name: string) {
+  if (!Object.values(BuildingEnum).includes(name as BuildingEnum)) return;
+  return data.buildings[name as BuildingEnum];
 }
 
-export function getRecipe(key: string) {
-  if (data.recipes[key]) return data.recipes[key];
-  else return null;
+export function getRecipe(name: string) {
+  return recipes?.[name];
 }
 
-export function getBuildingNameByResource(
-  resourceName: string,
-  settings: SettingsType
-) {
-  if (!Object.values(ResourceEnum).includes(resourceName as ResourceEnum))
-    return undefined;
-
-  resourceName = resourceName as ResourceEnum;
-  let buildingName;
-  buildingName =
-    settings.gameSettings[settings.gameMode].resources[
-      resourceName as ResourceEnum
-    ];
-  if (!buildingName) {
-    buildingName = data.resources[resourceName as ResourceEnum]
-      .producedBy[0] as BuildingEnum | undefined;
-  }
-
-  return buildingName;
+export function getBeacon(name: string) {
+  return data.beacons[name as BeaconEnum];
 }
 
-export function getOutputDataByResource(
-  resourceName: string,
-  settings: SettingsType
-) {
-  const resource = getResource(resourceName);
-  if (!resource) return undefined;
-
-  const recipe = getRecipe(resource.key);
-  if (!recipe) return undefined;
-
-  const buildingName = getBuildingNameByResource(resourceName, settings);
-  if (!buildingName) return undefined;
-
-  const buildingData = recipe.buildings[buildingName];
-  if (!buildingData) return undefined;
-
-  const outputData = buildingData.output.find(
-    (value) => value.name == resourceName
-  );
-  if (!outputData) return undefined;
-
-  return outputData;
+export function getBoostersByBuilding(name: string) {
+  const building = getBuilding(name);
+  return building?.booster;
 }
 
-export function getBeaconByBuilding(
-  buildingName: string,
-  settings: SettingsType
-) {
-  const building = getBuilding(buildingName);
-  if (!building) return undefined;
-
-  const beacons: [string, number][] = [];
-  Object.values(BeaconEnum).forEach((beaconName) => {
-    const beacon = getBeacon(beaconName);
-    if (!beacon) return;
-    if (
-      building.inGameModes.includes(settings.gameMode) &&
-      beacon.inGameModes.includes(settings.gameMode)
-    ) {
-      beacons.push([ beaconName, beacon.distributionEffectivity ]);
-    }
-  });
-
-  return Object.fromEntries(beacons);
+export function getAffinitiesByBuilding(name: string) {
+  const building = getBuilding(name);
+  return building?.affinities;
 }
 
-export function getBoostersByBuilding(buildingName: string) {
-  const building = getBuilding(buildingName);
-  if (
-    !building ||
-    !Object.values(ExtractorEnum).includes(buildingName as ExtractorEnum)
-  )
-    return;
-
-  const extractorBuilding = building as ExtractorType;
-  if (!extractorBuilding.booster) return;
-  if (Object.keys(extractorBuilding.booster).length == 0) return;
-
-  return Object.fromEntries(
-    Object.keys(extractorBuilding.booster!).map((key) => [
-      key,
-      extractorBuilding.booster![key as ResourceEnum],
-    ])
-  ) as Record<
-    ResourceEnum,
-    {
-      perSec: number;
-      speed: number;
-    }
-  >;
-}
-
-export function getAffinitiesByBuilding(buildingName: string) {
-  const building = getBuilding(buildingName);
-  if (building && "affinities" in building && building.affinities) {
-    return building.affinities;
-  }
-  return;
-}
-
-export function calculateProductsPerSec(
-  target: ResourceEnum | UnitEnum,
-  numOfBuilding: number,
-  settings: SettingsType
-): number {
-  if (Object.values(ResourceEnum).includes(target as ResourceEnum)) {
-    const outputData = getOutputDataByResource(target, settings);
-    if (!outputData) return NaN;
-
-    return outputData.perSec * numOfBuilding;
-  } else if (Object.values(UnitEnum).includes(target as UnitEnum)) {
-    return NaN;
-  } else {
-    return NaN;
-  }
-}
-
-export function calculateNumOfBuilding(
-  target: ResourceEnum | UnitEnum,
-  productsPerSec: number,
-  settings: SettingsType
-): number {
-  if (Object.values(ResourceEnum).includes(target as ResourceEnum)) {
-    const outputData = getOutputDataByResource(target, settings);
-    if (!outputData) return NaN;
-
-    return productsPerSec / outputData.perSec;
-  } else if (Object.values(UnitEnum).includes(target as UnitEnum)) {
-    return NaN;
-  } else {
-    return NaN;
-  }
-}
-
-export function isBuildingType(input: string) {
-  return (
-    Object.values(FactoryEnum).includes(input as FactoryEnum) ||
-    Object.values(ExtractorEnum).includes(input as ExtractorEnum) ||
-    Object.values(UnitBuildingEnum).includes(input as UnitBuildingEnum)
-  );
+export function getTerrain(name: string) {
+  return data.floors[name as FloorEnum]
 }

@@ -3,9 +3,9 @@
 import { SettingsContext } from "@/context/SettingsContext"
 import { useContext } from "react"
 import CustomDetails from "../CustomDetails"
-import { ResourceEnum } from "@/types/data/vanilla-7.0"
+import { GameModeEnum, ResourceEnum } from "@/types/data/vanilla-7.0"
 import CustomImage from "../CustomImage"
-import { getResource } from "@/types/utils"
+import { getBuilding, getItem } from "@/types/utils"
 
 export default function MaterialSettings() {
   const [settings, setSettings] = useContext(SettingsContext).settingsState
@@ -33,8 +33,17 @@ export default function MaterialSettings() {
         </thead>
         <tbody>
           {Object.values(ResourceEnum).map((resourceName) => {
-            const resource = getResource(resourceName);
-            if (!resource || (resource && resource.producedBy.length < 1)) return;
+            const resource = getItem(resourceName);
+            if (!resource) return;
+            if (!resource.inGameModes.includes(settings.gameMode) && settings.gameMode !== GameModeEnum.Any) return;
+
+            const producedBy = resource.producedBy.map((buildingName) => {
+              const building = getBuilding(buildingName);
+              if (!building) return;
+              if (!building.inGameModes.includes(settings.gameMode) && settings.gameMode !== GameModeEnum.Any) return;
+              return buildingName;
+            }).filter(value => value !== undefined)
+            if (producedBy.length < 2) return;
 
             return (
               <tr key={resourceName}>
@@ -46,18 +55,22 @@ export default function MaterialSettings() {
                 </td>
                 <td>
                   <div className="flex flex-wrap gap-1">
-                    {resource.producedBy.map((buildingName) => (
+                    {resource.producedBy.map((buildingName, idx) => {
+                      const building = getBuilding(buildingName);
+                      if (!building || (building && !building.inGameModes.includes(settings.gameMode)) && settings.gameMode !== GameModeEnum.Any) return;
+
+                      return (
                       <div
-                        key={buildingName}
-                        className={`p-1 cursor-pointer rounded-md duration-100 ${settings.gameSettings[settings.gameMode].resources[resourceName] == buildingName ? "bg-primary" : "bg-surface-a20"}`}
+                        key={idx}
+                        className={`p-1 cursor-pointer rounded-md duration-100 ${settings.gameSettings[settings.gameMode].items[resourceName] == buildingName ? "bg-primary" : "bg-surface-a20"}`}
                         onClick={() => setSettings(prev => ({
                           ...prev,
                           gameSettings: {
                             ...prev.gameSettings,
                             [prev.gameMode]: {
                               ...prev.gameSettings[prev.gameMode],
-                              resources: {
-                                ...prev.gameSettings[prev.gameMode].resources,
+                              items: {
+                                ...prev.gameSettings[prev.gameMode].items,
                                 [resourceName]: buildingName
                               }
                             }
@@ -66,7 +79,7 @@ export default function MaterialSettings() {
                       >
                         <CustomImage name={buildingName} />
                       </div>
-                    ))}
+                    )})}
                   </div>
                 </td>
               </tr>

@@ -2,11 +2,18 @@
 
 import { SettingsContext } from "@/context/SettingsContext";
 import { TargetContext } from "@/context/TargetContext";
-import { calculateNumOfBuilding, calculateProductsPerSec } from "@/types/utils";
+import { GameModeEnum } from "@/types/data/vanilla-7.0";
+import {
+  calculateNumOfBuilding,
+  calculateProductsPerSec,
+  getTimeUnitInSeconds,
+} from "@/types/utils";
 import { useContext, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function InputTarget() {
-  const settings = useContext(SettingsContext).settingsState[0];
+  const { t } = useTranslation();
+  const [settings, setSettings] = useContext(SettingsContext).settingsState;
   const productTarget = useContext(TargetContext).target;
   const productsPerSec = useContext(TargetContext).productsPerSec;
   const setProductsPerSec = useContext(TargetContext).setProductsPerSec;
@@ -35,12 +42,12 @@ export default function InputTarget() {
 
       const numOfBuilding = calculateNumOfBuilding(
         productTarget,
-        +value,
+        +value / getTimeUnitInSeconds(settings),
         settings
-      );
+      ).numOfBuilding;
       numOfBuildingRef.current.value = +numOfBuilding.toFixed(1) + "";
       setNumOfBuilding(numOfBuilding);
-      setProductsPerSec(value);
+      setProductsPerSec(value / getTimeUnitInSeconds(settings));
       setCalculationMode("itemsPerTime");
     }
     target.style.width = "80px";
@@ -95,7 +102,8 @@ export default function InputTarget() {
         numOfBuilding,
         settings
       );
-      numOfProductsPerSecRef.current.value = +productPerSec.toFixed(3) + "";
+      numOfProductsPerSecRef.current.value =
+        +(productPerSec * getTimeUnitInSeconds(settings)).toFixed(3) + "";
       setProductsPerSec(productPerSec);
     }
 
@@ -104,11 +112,26 @@ export default function InputTarget() {
         productTarget,
         productsPerSec,
         settings
-      );
+      ).numOfBuilding;
       numOfBuildingRef.current.value = +numOfBuilding.toFixed(3) + "";
       setNumOfBuilding(numOfBuilding);
     }
-  }, [productTarget]);
+  }, [
+    productTarget,
+    numOfBuilding,
+    productsPerSec,
+    settings,
+    calculationMode,
+    setProductsPerSec,
+    setNumOfBuilding,
+  ]);
+
+  useEffect(() => {
+    if (numOfProductsPerSecRef.current && numOfBuildingRef.current) {
+      numOfProductsPerSecRef.current.value = +productsPerSec.toFixed(3) + "";
+      numOfBuildingRef.current.value = +numOfBuilding.toFixed(3) + "";
+    }
+  }, [productTarget, numOfBuilding]);
 
   return (
     <div className="flex flex-wrap items-center p-2 gap-2">
@@ -119,7 +142,7 @@ export default function InputTarget() {
             calculationMode !== "building" ? "font-normal" : ""
           }`}
         >
-          Buildings:
+          {t("Buildings")}:
         </label>
         <input
           ref={numOfBuildingRef}
@@ -141,7 +164,7 @@ export default function InputTarget() {
             calculationMode !== "itemsPerTime" ? "font-normal" : ""
           }`}
         >
-          Items/{settings.displayRate}:
+          {t("Items")}/{t(settings.displayRate)}:
         </label>
         <input
           ref={numOfProductsPerSecRef}
@@ -151,10 +174,73 @@ export default function InputTarget() {
           defaultValue={+productsPerSec.toFixed(3) + ""}
           maxLength={100}
           onKeyDown={(event) => {
-            if (event.key == "Enter") handleBuildings(event);
+            if (event.key == "Enter") handleProductsPerSec(event);
           }}
           onBlur={handleProductsPerSec}
         />
+      </div>
+      <div className="flex gap-2 border-l border-surface-a30 pl-2 max-xl:hidden">
+        <div className="flex items-center gap-2">
+          <span>{t("Display rates as")}:</span>
+          <select
+            className="outline-none cursor-pointer bg-surface-a20 p-1 px-2 rounded-md"
+            defaultValue={settings.displayRate}
+            onChange={(event) => {
+              const target = event.target as HTMLSelectElement;
+              setSettings((prev) => ({ ...prev, displayRate: target.value }));
+            }}
+          >
+            {Object.entries({
+              second: "second",
+              minute: "minute",
+              hour: "hour",
+            }).map(([rate, display]) => (
+              <option key={rate} value={rate} className="bg-surface-a10">
+                {t(display)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span>{t("Game mode")}:</span>
+          <select
+            className="outline-none cursor-pointer bg-surface-a20 p-1 px-2 rounded-md"
+            defaultValue={settings.gameMode}
+            onChange={(event) => {
+              const target = event.target as HTMLSelectElement;
+              setSettings((prev) => ({
+                ...prev,
+                gameMode: target.value as GameModeEnum,
+              }));
+            }}
+          >
+            {Object.values(GameModeEnum).map((mode) => (
+              <option key={mode} value={mode} className="bg-surface-a10">
+                {mode}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <span>{t("Language")}:</span>
+          <select
+            className="outline-none cursor-pointer bg-surface-a20 p-1 px-2 rounded-md"
+            defaultValue={settings.lang}
+            onChange={(event) => {
+              const target = event.target as HTMLSelectElement;
+              setSettings((prev) => ({ ...prev, lang: target.value }));
+            }}
+          >
+            {Object.entries({
+              en: "English",
+              vi: "Tiếng Việt",
+            }).map(([lang, display]) => (
+              <option key={lang} value={lang} className="bg-surface-a10">
+                {display}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
     </div>
   );

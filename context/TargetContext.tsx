@@ -1,13 +1,13 @@
 "use client"
 
-import { ResourceEnum } from "@/types/data/vanilla-7.0";
+import { ItemEnum } from "@/types/data/vanilla-v8";
 import { calculateProductsPerSec } from "@/types/utils";
 import { createContext, useContext, useState } from "react";
 import { SettingsContext } from "./SettingsContext";
 
 type TargetContextType = {
-  target: ResourceEnum;
-  setTarget: React.Dispatch<React.SetStateAction<ResourceEnum>>;
+  target: ItemEnum;
+  setTarget: React.Dispatch<React.SetStateAction<ItemEnum>>;
   numOfBuilding: number;
   setNUmOfBuilding: React.Dispatch<React.SetStateAction<number>>;
   calculationMode: "building" | "itemsPerTime";
@@ -19,7 +19,7 @@ type TargetContextType = {
 export const TargetContext = createContext<TargetContextType>({} as unknown as TargetContextType);
 
 export function TargetProvider({ children }: { children: React.ReactNode }) {
-  const [target, setTarget] = useState(ResourceEnum.Silicon);
+  const [target, setTarget] = useState<ItemEnum>(ItemEnum.Silicon);
   const [productsPerSec, setProductsPerSec] = useState(calculateProductsPerSec(target, 1, useContext(SettingsContext).settingsState[0]));
   const [numOfBuilding, setNumOfBuilding] = useState(1);
   const [calculationMode, setCalculationMode] = useState<"building" | "itemsPerTime">("building");

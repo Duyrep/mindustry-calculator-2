@@ -1,29 +1,18 @@
-import {
-  BeaconEnum,
-  BuildingEnum,
-  ExtractorEnum,
-  FloorsEnum,
-  GameModeEnum,
-  ResourceEnum,
-} from "./data/vanilla-7.0";
+import { GameModeEnum } from "./data/vanilla-v8";
 
 export type SettingsType = {
   theme: "dark" | "light";
   lang: string;
   displayRate: string;
-  graphDirection: 0 | 1;
+  graphDirection: "LR" | "TB";
 
   gameMode: GameModeEnum;
   gameSettings: Record<GameModeEnum, GameSettingsType>;
 };
 
 export type GameSettingsType = {
-  resources: Partial<Record<ResourceEnum, BuildingEnum>>;
-  beacons: Partial<Record<ResourceEnum, BeaconEnum>>;
-  boosts: Partial<
-    Record<ResourceEnum | string, Record<ExtractorEnum | string, ResourceEnum | string>>
-  >;
-  affinities: Partial<
-    Record<ResourceEnum | string, Record<BuildingEnum | string, FloorsEnum | string>>
-  >;
+  items: Record<string, string>;
+  beacons: Partial<Record<string, string>>;
+  boosts: Partial<Record<string, Record<string, string>>>;
+  affinities: Partial<Record<string, Record<string, string>>>;
 };

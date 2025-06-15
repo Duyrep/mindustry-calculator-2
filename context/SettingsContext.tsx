@@ -1,5 +1,6 @@
 "use client";
 
+import i18n from "@/i18n/i18n";
 import { SettingsType } from "@/types/types";
 import { getDefaultSettings } from "@/types/utils";
 import { createContext, useEffect, useState } from "react";
@@ -24,7 +25,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState(getDefaultSettings());
 
   useEffect(() => {
-    setTheme(localStorage.getItem("theme") as "light" | "dark");
+    setTheme((localStorage.getItem("theme") as "light" | "dark") ?? "dark");
+    setSettings((prev) => ({
+      ...prev,
+      lang: localStorage.getItem("lang") ?? "en",
+    }));
+    if (!localStorage.getItem("lang")) {
+      localStorage.setItem("lang", "en");
+    }
   }, []);
 
   useEffect(() => {
@@ -39,6 +47,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     console.log(settings);
+    localStorage.setItem("lang", settings.lang);
+    i18n.changeLanguage(settings.lang);
   }, [settings]);
 
   return (

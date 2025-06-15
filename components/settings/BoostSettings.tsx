@@ -4,6 +4,7 @@ import {
   BuildingEnum,
   ExtractorEnum,
   ExtractorType,
+  GameModeEnum,
   ResourceEnum,
 } from "@/types/data/vanilla-7.0";
 import CustomDetails from "../CustomDetails";
@@ -48,6 +49,8 @@ export default function BoostSettings() {
                     if (!extractor) return;
                     if (!extractor.booster) return;
                     if (Object.keys(extractor.booster).length == 0) return;
+                    if (!extractor.inGameModes.includes(settings.gameMode) && settings.gameMode !== GameModeEnum.Any) return;
+
                     return [
                       extractorName,
                       extractor.booster as Record<

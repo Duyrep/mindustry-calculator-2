@@ -1,0 +1,33 @@
+{
+  "Factory": "Nhà máy",
+  "Visualize": "Hình dung",
+  "Settings": "Cài đặt",
+  "About": "Giới thiệu",
+
+  "Buildings": "Công trình",
+  "Items": "Sản phẩm",
+
+  "Affinities": "Khu vực",
+  "Boosts": "Tăng cường",
+  "Beacons": "Tăng tốc",
+
+  "Graph direction": "Hướng đồ thị",
+  "Top to bottom": "Từ trên xuống dưới",
+  "Left to right": "Từ trái sang phải",
+
+  "Game version": "Phiên bản trò chơi",
+  "Reset": "Đặt lại",
+
+  "General": "Chung",
+  "Language": "Ngôn ngữ",
+  "Display rates as": "Hiển thị tỉ lệ dưới dạng",
+  "second": "giây",
+  "minute": "phút",
+  "hour": "giờ",
+  "Game mode": "Chế độ chơi",
+
+  "Copper": "Đồng",
+  "Lead": "Chì",
+  "Coal": "Than",
+  "Sand": "Cát"
+}
