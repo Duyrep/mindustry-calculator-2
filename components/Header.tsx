@@ -407,7 +407,7 @@ const SelectionDialog = ({
         </span>
         <input
           type="text"
-          placeholder="Search by name"
+          placeholder={t("Search by name")}
           onChange={(event) => {
             setSearchItem(event.target.value);
           }}
@@ -464,9 +464,9 @@ const SelectionDialog = ({
             }
           }}
               >
-          <CustomImage name={gameObjectName} />
+          <div className="w-max h-max"><CustomImage name={gameObjectName} /></div>
           &nbsp;
-          <span>{t(gameObjectName)}</span>
+          <span className="text-nowrap">{t(gameObjectName)}</span>
               </div>
             );
             return acc;
@@ -476,7 +476,7 @@ const SelectionDialog = ({
 
           return (
             <React.Fragment key={group}>
-              <p className="font-bold">{group}</p>
+              <p className="font-bold">{t(group)}</p>
               <hr />
               <div className="flex flex-wrap gap-1 p-1">{items}</div>
             </React.Fragment>

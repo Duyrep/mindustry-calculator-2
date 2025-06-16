@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function Dialog({
   children,
@@ -9,6 +10,7 @@ export default function Dialog({
   showState: [boolean, React.Dispatch<React.SetStateAction<boolean>>];
   className?: string;
 }) {
+  const { t } = useTranslation();
   const [show, setShow] = showState;
   const dialog = useRef<HTMLDivElement | null>(null);
   const menu = useRef<HTMLDivElement | null>(null);
@@ -52,7 +54,7 @@ export default function Dialog({
             className="bg-primary py-1 px-2 rounded-md text-base"
             onClick={() => setShow(false)}
           >
-            Close
+            {t("Close")}
           </button>
         </div>
       </div>

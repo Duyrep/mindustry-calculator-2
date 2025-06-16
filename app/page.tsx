@@ -55,7 +55,7 @@ export default function Factory() {
   return (
     <>
       <CustomDetails
-        summary="Products"
+        summary={t("Products")}
         className="rounded-t-md transition-all duration-200"
         defaultOpen={true}
         onChange={(open, target) => {
@@ -135,7 +135,7 @@ export default function Factory() {
         </div>
       </CustomDetails>
       <CustomDetails
-        summary="Power"
+        summary={t("Power")}
         className="border-surface-a30 transition-all duration-200 rounded-b-md"
         onChange={(open, target) => {
           if (open) {
@@ -304,8 +304,8 @@ const SelectionDialog = ({
   showState?: [boolean, React.Dispatch<React.SetStateAction<boolean>>];
   image?: string;
 }) => {
+  const { t } = useTranslation();
   const [internalShow, setInternalShow] = useState(false);
-
   const [show, setShow] = showState ?? [internalShow, setInternalShow];
 
   return (
@@ -314,15 +314,15 @@ const SelectionDialog = ({
         className="border border-surface-a20 rounded-md p-1 cursor-pointer hover:border-primary transition-colors"
         onClick={() => setShow(!show)}
       >
-        <div className="flex rounded-md items-center w-8 h-8 select-none">
+        <div className="flex rounded-md justify-center items-center text-center w-8 h-8 select-none">
           {image ? (
             image == "Other" ? (
-              "Other"
+              t("Other")
             ) : (
               <CustomImage name={image} />
             )
           ) : (
-            "None"
+            t("None")
           )}
         </div>
       </div>
@@ -332,6 +332,7 @@ const SelectionDialog = ({
 };
 
 const Beacons = ({ productName }: { productName: string }) => {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
   const [settings, setSettings] = useContext(SettingsContext).settingsState;
 
@@ -391,7 +392,7 @@ const Beacons = ({ productName }: { productName: string }) => {
                   key={`none-${idx}`}
                   className="flex items-center justify-center w-8 min-h-8 h-full select-none"
                 >
-                  None
+                  {t("None")}
                 </div>
               )}
             </div>
@@ -409,6 +410,7 @@ const Boosts = ({
   buildingName: string;
   productName: string;
 }) => {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
   const [settings, setSettings] = useContext(SettingsContext).settingsState;
   const boosts = getBoostersByBuilding(buildingName);
@@ -471,7 +473,7 @@ const Boosts = ({
                         key={`none-${idx}`}
                         className="flex items-center justify-center w-8 min-h-8 h-full select-none"
                       >
-                        None
+                        {t("None")}
                       </div>
                     </>
                   )}
@@ -492,6 +494,7 @@ const Affinities = ({
   buildingName: string;
   productName: string;
 }) => {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
   const [settings, setSettings] = useContext(SettingsContext).settingsState;
   const affinities = getAffinitiesByBuilding(buildingName);
@@ -564,7 +567,7 @@ const Affinities = ({
                     </div>
                   ) : (
                     <div className="w-8 h-8 flex items-center justify-center select-none">
-                      Other
+                      {t("Other")}
                     </div>
                   )}
                 </div>

@@ -529,8 +529,8 @@ export const data: DataType = {
       imageRow: 2,
       imageCol: 2,
       producedBy: [
-        BuildingEnum.SporePress,
         BuildingEnum.OilExtractor,
+        BuildingEnum.SporePress,
         BuildingEnum.MechanicalPump,
         BuildingEnum.RotaryPump,
         BuildingEnum.ImpulsePump,
@@ -1090,6 +1090,7 @@ export const data: DataType = {
       imageCol: 4,
       power: 4,
       affinities: {
+        [FloorEnum.Other]: {},
         [FloorEnum.HotRock]: {efficiency: 0.67},
         [FloorEnum.MagmaRock]: {efficiency: 1.01}
       }
@@ -1263,6 +1264,7 @@ export const data: DataType = {
       imageCol: 0,
       power: 1.5,
       affinities: {
+        [FloorEnum.Other]: {},
         [FloorEnum.MagmaRock]: { affinity: -0.75 },
         [FloorEnum.HotRock]: { affinity: -0.5 },
         [FloorEnum.SaltFloor]: { affinity: -0.3 },
@@ -1857,7 +1859,3 @@ export const recipes: Record<string, RecipeData> = {
   nitrogen: {},
   cyanogen: {},
 };
-
-// mechanicaldrill
-// drilltime 600
-//

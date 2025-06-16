@@ -45,15 +45,16 @@ export function getProductsPerSec(name: string, settings: SettingsType) {
   }
 
   const affinities = getAffinitiesByBuilding(buildingName);
-  const affinityName = settings.gameSettings[settings.gameMode].affinities[name]?.[buildingName]
+  const affinityName =
+    settings.gameSettings[settings.gameMode].affinities[name]?.[buildingName];
   if (affinities && affinityName) {
-    const affinity = affinities[affinityName as FloorEnum]?.affinity
-    const efficiency = affinities[affinityName as FloorEnum]?.efficiency
+    const affinity = affinities[affinityName as FloorEnum]?.affinity;
+    const efficiency = affinities[affinityName as FloorEnum]?.efficiency;
     if (affinity) {
-      perSec += perSec * affinity
+      perSec += perSec * affinity;
     }
     if (efficiency) {
-      perSec += perSec * efficiency
+      perSec += perSec * efficiency;
     }
   }
 
@@ -73,7 +74,7 @@ export function calculateNumOfBuilding(
   productsPerSec: number,
   settings: SettingsType
 ) {
-  const { perSec, usedBoost } = getProductsPerSec(target, settings)
+  const { perSec, usedBoost } = getProductsPerSec(target, settings);
   return { numOfBuilding: productsPerSec / perSec, usedBoost };
 }
 
@@ -131,7 +132,24 @@ export function getDefaultGameSettings(
         .filter((value) => value.length != 0)
     ),
     boosts: {},
-    affinities: {},
+    affinities: (() => {
+      const affinities: Record<string, Record<string, string>> = {};
+      Object.values(ItemEnum).forEach((itemName) => {
+        const item = getItem(itemName);
+        if (!item) return;
+        item.producedBy.forEach((buildingName) => {
+          const building = getBuilding(buildingName);
+          if (!building) return;
+          if (!building.affinities) return;
+          const affinity = Object.keys(building.affinities)[0];
+          if (!affinity) return;
+          if (!building.inGameModes.includes(gameMode)) return;
+          if (!affinities[itemName]) affinities[itemName] = {};
+          affinities[itemName][buildingName] = affinity;
+        });
+      });
+      return affinities;
+    })(),
   };
 }
 
@@ -172,5 +190,5 @@ export function getAffinitiesByBuilding(name: string) {
 }
 
 export function getTerrain(name: string) {
-  return data.floors[name as FloorEnum]
+  return data.floors[name as FloorEnum];
 }

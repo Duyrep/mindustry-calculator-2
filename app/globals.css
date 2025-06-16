@@ -89,7 +89,7 @@ body {
 }
 
 hr {
-  @apply border-surface-a40 border;
+  @apply border border-surface-a40;
 }
 
 input {
