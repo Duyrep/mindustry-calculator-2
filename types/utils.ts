@@ -192,3 +192,41 @@ export function getAffinitiesByBuilding(name: string) {
 export function getTerrain(name: string) {
   return data.floors[name as FloorEnum];
 }
+
+export function generateURL(
+  target: string,
+  f?: number,
+  r?: number
+) {
+  const urlString = `?item=${target}:${f ? `f:${f}` : `r:${r}`}`;
+  return urlString;
+}
+
+export function readURL() {
+  let target: string | undefined;
+  let f: number | undefined = undefined;
+  let r: number | undefined = undefined;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  console.log("search", window.location.search)
+
+  const item = urlParams.get("item");
+  if (item) {
+    const parts = item.split(":");
+    console.log("parts", parts)
+    if (parts.length === 3) {
+      target = parts[0];
+      if (parts[1] == "f") {
+        f = Number(parts[2]);
+      } else if (parts[1] == "r") {
+        r = Number(parts[2]);
+      }
+    }
+  }
+
+  return {
+    target: target,
+    f: f,
+    r: r,
+  };
+}

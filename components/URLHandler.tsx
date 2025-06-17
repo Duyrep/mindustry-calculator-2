@@ -2,10 +2,8 @@
 
 import { TargetContext } from "@/context/TargetContext";
 import {
-  GameObjectEnum,
-  ResourceEnum,
-  UnitEnum,
-} from "@/types/data/vanilla-7.0";
+  ItemEnum,
+} from "@/types/data/vanilla-v8";
 import { generateURL, readURL } from "@/types/utils";
 import { usePathname } from "next/navigation";
 import React, { useContext, useEffect } from "react";
@@ -29,12 +27,12 @@ export default function URLHandler({
     const url = readURL();
     if (
       url.target &&
-      [...Object.values(ResourceEnum), ...Object.values(UnitEnum)].includes(
-        url.target as GameObjectEnum
+      Object.values(ItemEnum).includes(
+        url.target as ItemEnum
       ) &&
       (url.f || url.r)
     ) {
-      setTarget(url.target as GameObjectEnum);
+      setTarget(url.target as ItemEnum);
       if (url.f) {
         setNUmOfBuilding(url.f);
         setCalculationMode("building")
